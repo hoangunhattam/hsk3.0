@@ -110,7 +110,7 @@
       <div id="lessonList"></div>
     </nav>
     <main>
-      <iframe id="lessonFrame" src="hsk1_bai1.html" title="Nội dung bài học"></iframe>
+      <iframe id="lessonFrame" src="" title="Nội dung bài học"></iframe>
     </main>
   </div>
 </div>
@@ -164,7 +164,9 @@ function currentFile(){
 
 function selectLesson(file){
   frameEl.setAttribute('data-current', file);
-  frameEl.src = file;
+  // Cache-busting: luôn thêm ?v=timestamp để trình duyệt không dùng bản cache cũ
+  // của file bài học (quan trọng vì các file hsk1_baiN.html thường được cập nhật lại).
+  frameEl.src = file + '?v=' + Date.now();
   document.querySelectorAll('.lesson-btn').forEach(function(b){
     b.classList.toggle('active', b.dataset.file === file);
   });
@@ -181,6 +183,7 @@ menuToggle.addEventListener('click', function(){
 overlayEl.addEventListener('click', closeSidebarMobile);
 
 frameEl.setAttribute('data-current','hsk1_bai1.html');
+frameEl.src = 'hsk1_bai1.html?v=' + Date.now();
 render();
 </script>
 </body>
