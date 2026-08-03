@@ -227,7 +227,8 @@ const lessons = [
   {n:12,  file:"hsk2_bai12.html",  zh:"这里比北京冷多了"},
   {n:13,  file:"hsk2_bai13.html",  zh:"我们爱上中文课"},
   {n:14,  file:"hsk2_bai14.html",  zh:"一个人过年多没意思啊"},
-  {n:15,  file:"hsk2_bai15.html",  zh:"我想再去一次中国"}
+  {n:15,  file:"hsk2_bai15.html",  zh:"我想再去一次中国"},
+  {n:"🎯", file:"hsk2_ontap_tonghop.html", zh:"综合复习", sub:"Ôn tập tổng HSK2"}
 ];
 
 const listEl = document.getElementById('lessonList');
@@ -246,7 +247,7 @@ function render(){
       '<span class="lesson-num">' + l.n + '</span>' +
       '<span class="lesson-text">' +
         '<span class="lesson-zh">' + l.zh + '</span>' +
-        '<span class="lesson-sub">Bài ' + l.n + '</span>' +
+        '<span class="lesson-sub">' + (l.sub || ('Bài ' + l.n)) + '</span>' +
       '</span>';
     btn.addEventListener('click', function(){ selectLesson(l.file); });
     listEl.appendChild(btn);
