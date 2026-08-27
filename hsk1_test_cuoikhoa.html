@@ -120,7 +120,10 @@
   .dialogue-key .py{color:#8a5a00; font-size:.82em;}
   .dialogue-key b.dkey{color:var(--green-dark); margin-right:6px;}
 
-  .mc-question{background:#f6fbf7; border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin:12px 0;}
+  .mc-question{background:#f6fbf7; border:1px solid var(--line); border-radius:10px; padding:12px 36px 12px 14px; margin:12px 0; position:relative;}
+  .flag-star{position:absolute; top:8px; right:8px; background:none; border:none; font-size:1.3em; line-height:1; cursor:pointer; color:#b8860b; padding:2px;}
+  .flag-star:hover{transform:scale(1.12);}
+  .flag-star.active{color:#d4a017;}
   .mc-question .qnum{font-weight:800; color:var(--green-dark); margin-right:6px;}
   .mc-sentence{font-size:1.05em; margin-bottom:2px;}
   .mc-sentence .py{display:block; color:#8a5a00; font-size:.8em; font-style:italic; margin-top:2px;}
@@ -149,6 +152,55 @@
   .mc-textchoice.ok{border-color:#2e9e4f; background:#eafaf0;}
   .mc-textchoice.bad{border-color:var(--red); background:var(--red-bg);}
   .mc-textchoice.correct-mark{box-shadow:0 0 0 3px var(--gold) inset;}
+
+  /* ==== 答题卡 Bảng theo dõi tiến trình ==== */
+  .exam-layout{display:flex; gap:20px; align-items:flex-start;}
+  .exam-main{flex:1; min-width:0;}
+  .answer-sheet{
+    width:260px; flex-shrink:0; background:#fff; border:1px solid var(--line); border-radius:14px;
+    box-shadow:var(--shadow); padding:14px; position:sticky; top:12px; max-height:calc(100vh - 24px); overflow-y:auto;
+  }
+  .as-header{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .as-progress-circle{
+    width:52px; height:52px; border-radius:50%; background:conic-gradient(var(--green) 0%, #e3ece5 0% 100%);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative;
+  }
+  .as-progress-circle::before{content:""; position:absolute; inset:5px; background:#fff; border-radius:50%;}
+  .as-progress-circle span{position:relative; z-index:1; font-weight:800; font-size:.72em; color:var(--green-dark);}
+  .as-title{font-weight:800; color:var(--green-dark); font-size:.92em; line-height:1.3;}
+  .as-title span{display:block; font-weight:500; font-size:.72em; color:#5c6b60;}
+  .as-close-mobile{display:none; margin-left:auto; background:none; border:none; font-size:1.2em; cursor:pointer; color:#5c6b60;}
+  .as-legend{display:flex; flex-wrap:wrap; gap:9px; font-size:.74em; color:#5c6b60; margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed var(--line);}
+  .as-legend span{display:flex; align-items:center; gap:4px;}
+  .as-dot{width:12px; height:12px; border-radius:4px; background:#fff; border:2px solid var(--line); display:inline-block;}
+  .as-dot.done{background:var(--green); border-color:var(--green);}
+  .as-dot.flagged{background:#fff; border-color:var(--gold); box-shadow:0 0 0 2px var(--gold) inset;}
+  .as-section-title{font-size:.76em; font-weight:700; color:var(--green-dark); margin:9px 0 5px;}
+  .as-section-title span{font-weight:500; color:#5c6b60; margin-left:4px;}
+  .as-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:6px;}
+  .as-num{width:100%; aspect-ratio:1; border:2px solid var(--line); border-radius:8px; background:#fff; font-weight:700; font-size:.82em; cursor:pointer; color:var(--ink);}
+  .as-num:hover{border-color:var(--green);}
+  .as-num.done{background:var(--green-light); border-color:var(--green); color:var(--green-dark);}
+  .as-num.flagged{box-shadow:0 0 0 2px var(--gold) inset;}
+  .as-toggle-fab{
+    display:none; position:fixed; bottom:20px; right:20px; z-index:70; background:var(--green); color:#fff;
+    border:none; border-radius:30px; padding:12px 18px; font-weight:800; box-shadow:0 4px 14px rgba(0,0,0,.25);
+    cursor:pointer; align-items:center; gap:6px; font-size:.95em;
+  }
+  @media (max-width:1000px){
+    .exam-layout{flex-direction:column;}
+    .answer-sheet{
+      position:fixed; left:0; right:0; bottom:0; top:auto; width:auto; max-height:70vh;
+      border-radius:16px 16px 0 0; transform:translateY(110%); transition:transform .25s ease; z-index:80;
+      box-shadow:0 -6px 20px rgba(0,0,0,.2);
+    }
+    .answer-sheet.open{transform:translateY(0);}
+    .as-close-mobile{display:block;}
+    .as-toggle-fab{display:flex;}
+  }
+  @media print{
+    .answer-sheet, .as-toggle-fab{display:none !important;}
+  }
 
 </style>
 </head>
@@ -186,6 +238,8 @@
   </div>
 
   <div id="exam-content" style="display:none;">
+  <div class="exam-layout">
+  <div class="exam-main">
 
   <div class="exam-timer-box">
     <span id="exam-timer">⏰ 40:00</span>
@@ -280,9 +334,27 @@
     </div>
   </div>
 
-  </div>
+  </div><!-- .exam-main -->
+
+  <aside class="answer-sheet" id="answer-sheet">
+    <div class="as-header">
+      <div class="as-progress-circle" id="as-progress-ring"><span id="as-progress-text">0/40</span></div>
+      <div class="as-title">答题卡<span>Bảng theo dõi tiến trình làm bài</span></div>
+      <button type="button" class="as-close-mobile" onclick="closeAnswerSheetMobile()">✕</button>
+    </div>
+    <div class="as-legend">
+      <span><i class="as-dot done"></i>Đã làm</span>
+      <span><i class="as-dot"></i>Chưa làm</span>
+      <span><i class="as-dot flagged"></i>Đánh dấu</span>
+    </div>
+    <div class="as-body" id="answersheet-body"></div>
+  </aside>
+
+  </div><!-- .exam-layout -->
 
 </div>
+
+<button type="button" class="as-toggle-fab" id="as-toggle-fab" onclick="toggleAnswerSheetMobile()">📋 <span id="as-fab-badge">0/40</span></button>
 
 <script>
 /* ============ DATA — HSK（一级）模拟试卷 (đúng 参考答案 gốc) ============ */
@@ -393,17 +465,128 @@ const r_p4Data = [
 const state = {};
 let locked = false;
 
+/* ---- 答题卡 Bảng theo dõi tiến trình + đánh dấu câu (⭐) ---- */
+const FLAG_KEY = 'hnnt_hsk1_testcuoikhoa_flags_v1';
+const flags = {};
+function loadFlags(){
+  try{
+    const raw = localStorage.getItem(FLAG_KEY);
+    if(raw){ Object.assign(flags, JSON.parse(raw)); }
+  }catch(e){ /* localStorage có thể bị chặn */ }
+}
+function saveFlags(){
+  try{ localStorage.setItem(FLAG_KEY, JSON.stringify(flags)); }catch(e){ /* localStorage có thể bị chặn */ }
+}
+function flagStarHtml(num){
+  const flagged = !!flags[String(num)];
+  return `<button type="button" class="flag-star${flagged?' active':''}" onclick="toggleFlag(${num}, this)" title="Đánh dấu câu này để xem lại">${flagged?'★':'☆'}</button>`;
+}
+function toggleFlag(qnum, btnEl){
+  const key = String(qnum);
+  if(flags[key]){
+    delete flags[key];
+    btnEl.textContent = '☆';
+    btnEl.classList.remove('active');
+  } else {
+    flags[key] = true;
+    btnEl.textContent = '★';
+    btnEl.classList.add('active');
+  }
+  saveFlags();
+  updateAnswerSheet();
+}
+loadFlags();
+
+const ANSWER_SHEET_GROUPS = [
+  {key:'L1', label:'听力 第一部分', range:'1–5'},
+  {key:'L2', label:'听力 第二部分', range:'6–10'},
+  {key:'L3', label:'听力 第三部分', range:'11–15'},
+  {key:'L4', label:'听力 第四部分', range:'16–20'},
+  {key:'R1', label:'阅读 第一部分', range:'21–25'},
+  {key:'R2', label:'阅读 第二部分', range:'26–30'},
+  {key:'R3', label:'阅读 第三部分', range:'31–35'},
+  {key:'R4', label:'阅读 第四部分', range:'36–40'}
+];
+
+function buildAnswerSheet(){
+  const body = document.getElementById('answersheet-body');
+  if(!body) return;
+  body.innerHTML = '';
+  ANSWER_SHEET_GROUPS.forEach(gr=>{
+    const nums = [];
+    document.querySelectorAll(`.mc-question[data-group="${gr.key}"]`).forEach(box=> nums.push(+box.dataset.qnum));
+    nums.sort((a,b)=>a-b);
+    if(!nums.length) return;
+    const section = document.createElement('div');
+    section.className = 'as-section';
+    section.innerHTML = `<div class="as-section-title">${gr.label} <span>Câu ${gr.range}</span></div>`;
+    const grid = document.createElement('div');
+    grid.className = 'as-grid';
+    nums.forEach(n=>{
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'as-num';
+      btn.dataset.qnum = n;
+      btn.textContent = n;
+      btn.title = 'Đi tới câu ' + n;
+      btn.addEventListener('click', ()=>{
+        const target = document.getElementById('q'+n);
+        if(target) target.scrollIntoView({behavior:'smooth', block:'center'});
+        closeAnswerSheetMobile();
+      });
+      grid.appendChild(btn);
+    });
+    section.appendChild(grid);
+    body.appendChild(section);
+  });
+  updateAnswerSheet();
+}
+
+function updateAnswerSheet(){
+  const totalQ = document.querySelectorAll('.mc-question').length;
+  let doneCount = 0;
+  document.querySelectorAll('.as-num').forEach(btn=>{
+    const n = btn.dataset.qnum;
+    const isDone = !!state[n];
+    const isFlagged = !!flags[n];
+    btn.classList.toggle('done', isDone);
+    btn.classList.toggle('flagged', isFlagged);
+    if(isDone) doneCount++;
+  });
+  const label = doneCount + '/' + totalQ;
+  const pctEl = document.getElementById('as-progress-text');
+  if(pctEl) pctEl.textContent = label;
+  const fabBadge = document.getElementById('as-fab-badge');
+  if(fabBadge) fabBadge.textContent = label;
+  const ring = document.getElementById('as-progress-ring');
+  if(ring){
+    const pct = totalQ ? Math.round(doneCount/totalQ*100) : 0;
+    ring.style.background = `conic-gradient(var(--green) ${pct}%, #e3ece5 ${pct}% 100%)`;
+  }
+}
+
+function toggleAnswerSheetMobile(){
+  const el = document.getElementById('answer-sheet');
+  if(el) el.classList.toggle('open');
+}
+function closeAnswerSheetMobile(){
+  const el = document.getElementById('answer-sheet');
+  if(el) el.classList.remove('open');
+}
+
 function selectChoice(qnum, key, btnEl, groupSelector){
   if(locked) return;
   document.querySelectorAll(groupSelector).forEach(b=>b.classList.remove('selected'));
   btnEl.classList.add('selected');
   state[qnum] = key;
+  updateAnswerSheet();
 }
 
 function renderImgChoiceQuestion(container, q){
   const box = document.createElement('div');
   box.className = 'mc-question';
   box.dataset.qnum = q.num; box.dataset.answer = q.answer; box.dataset.group = q.group;
+  box.id = 'q' + q.num;
   box.innerHTML = `<div><span class="qnum">${q.num}.</span></div>`;
   const row = document.createElement('div');
   row.className = 'mc-imgchoice-row';
@@ -416,6 +599,7 @@ function renderImgChoiceQuestion(container, q){
     row.appendChild(btn);
   });
   box.appendChild(row);
+  box.insertAdjacentHTML('beforeend', flagStarHtml(q.num));
   container.appendChild(box);
 }
 
@@ -423,6 +607,7 @@ function renderTextChoiceQuestion(container, q, showSentence){
   const box = document.createElement('div');
   box.className = 'mc-question';
   box.dataset.qnum = q.num; box.dataset.answer = q.answer; box.dataset.group = q.group;
+  box.id = 'q' + q.num;
   if(showSentence){
     const html = q.sentenceHtml ? q.sentenceHtml : `${q.zh||''}${q.py?`<span class="py">${q.py}</span>`:''}`;
     box.innerHTML = `<div class="mc-sentence"><span class="qnum">${q.num}.</span> ${html}</div>`;
@@ -440,6 +625,7 @@ function renderTextChoiceQuestion(container, q, showSentence){
     row.appendChild(btn);
   });
   box.appendChild(row);
+  box.insertAdjacentHTML('beforeend', flagStarHtml(q.num));
   container.appendChild(box);
 }
 
@@ -447,6 +633,7 @@ function renderLetterChoiceQuestion(container, q, letters, showSentence){
   const box = document.createElement('div');
   box.className = 'mc-question';
   box.dataset.qnum = q.num; box.dataset.answer = q.answer; box.dataset.group = q.group;
+  box.id = 'q' + q.num;
   if(showSentence){
     box.innerHTML = `<div class="mc-sentence"><span class="qnum">${q.num}.</span> ${q.zh||''}${q.py?`<span class="py">${q.py}</span>`:''}</div>`;
   } else {
@@ -464,6 +651,7 @@ function renderLetterChoiceQuestion(container, q, letters, showSentence){
     row.appendChild(btn);
   });
   box.appendChild(row);
+  box.insertAdjacentHTML('beforeend', flagStarHtml(q.num));
   container.appendChild(box);
 }
 
@@ -519,6 +707,7 @@ function init(){
   });
 }
 init();
+buildAnswerSheet();
 
 /* ============ GRADING & SUBMIT ============ */
 const GROUP_LABEL = {
@@ -537,6 +726,7 @@ function applyAnswers(ans){
     const el = box.querySelector(`[data-key="${given}"]`);
     if(el) el.classList.add('selected');
   });
+  updateAnswerSheet();
 }
 
 function gradeAll(){
@@ -732,6 +922,10 @@ function performReset(){
   document.getElementById('submitted-panel').style.display = 'none';
   document.getElementById('export-panel').style.display = 'none';
   document.getElementById('export-text').value = '';
+  try{ localStorage.removeItem(FLAG_KEY); }catch(e){}
+  Object.keys(flags).forEach(k=>delete flags[k]);
+  document.querySelectorAll('.flag-star').forEach(btn=>{ btn.textContent = '☆'; btn.classList.remove('active'); });
+  updateAnswerSheet();
   showStartScreen();
 }
 
@@ -806,6 +1000,8 @@ function showExamContent(){
   const examContent = document.getElementById('exam-content');
   if(startScreen) startScreen.style.display = 'none';
   if(examContent) examContent.style.display = 'block';
+  const fab = document.getElementById('as-toggle-fab');
+  if(fab) fab.style.display = '';
 }
 
 function showStartScreen(){
@@ -813,6 +1009,9 @@ function showStartScreen(){
   const examContent = document.getElementById('exam-content');
   if(startScreen) startScreen.style.display = 'block';
   if(examContent) examContent.style.display = 'none';
+  const fab = document.getElementById('as-toggle-fab');
+  if(fab) fab.style.display = 'none';
+  closeAnswerSheetMobile();
 }
 
 function startExam(){
