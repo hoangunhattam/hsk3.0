@@ -843,7 +843,7 @@ function restoreLockedLuyenTap(){
 restoreLockedLuyenTap();
 
 /* ============ TAB 3 — BÀI DỊCH VIỆT-TRUNG & TRUNG-VIỆT (TỰ LUẬN, GIÁO VIÊN TỰ CHẤM) ============ */
-/* Trích từ tài liệu "DỊCH HSK1 3.0 MỚI" — mục BÀI 9: SÁNG MAI TÔI HỌC Ở TRƯỜNG / 第九课：我明天上午在学校学习 */
+/* Trích từ tài liệu "DỊCH HSK1 3.0 MỚI" — mục BÀI 10 / 第十课：这儿的苹果真便宜 */
 const translateViZh = [
   'Xin hỏi, cái ly này bao nhiêu tiền?',
   'Cái này 5 tệ một cái, cái kia 7 tệ một cái.',
@@ -931,7 +931,7 @@ function buildSummary(studentName, timeStr, viZhAnswers, zhViAnswers){
   translateZhVi.forEach((s,i)=>{
     zhViBody += `${i+1}. ${s}\n→ ${zhViAnswers[i] || '(chưa trả lời)'}\n\n`;
   });
-  return `KẾT QUẢ BÀI 9 — 我明天上午在学校学习 — Hoa Ngữ Nhất Tâm
+  return `KẾT QUẢ BÀI 10 — 这儿的苹果真便宜 — Hoa Ngữ Nhất Tâm
 Họ tên học viên: ${studentName}
 Nộp lúc: ${timeStr}
 
